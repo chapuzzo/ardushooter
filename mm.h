@@ -3,6 +3,8 @@
 
 #include "Arduino.h"
 
+#define ARRAY_COUNT(a) (sizeof(a)/(sizeof(a[0])))
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -25,7 +27,7 @@ struct minimenu_t{
 
 
 
-void mm_print(minimenu *mm);
+void mm_print(minimenu *mm, int n);
 
 
 #ifdef __cplusplus

@@ -25,12 +25,12 @@ void fill_tm(int i, int v[]){
 
 
 void fire(unsigned long t){
-        unsigned long t0;
-        pinMode(SHUTTERPIN, OUTPUT);        //outpin gives output
-        t0 = millis();
-        digitalWrite(SHUTTERPIN, HIGH);     //fire
-        while (millis() < t0+t){}           //wait t millisec
-        digitalWrite(SHUTTERPIN, LOW);      //end fire
+    unsigned long t0;
+    pinMode(SHUTTERPIN, OUTPUT);        //outpin gives output
+    t0 = millis();
+    digitalWrite(SHUTTERPIN, HIGH);     //fire
+    while (millis() < t0+t){}           //wait t millisec
+    digitalWrite(SHUTTERPIN, LOW);      //end fire
 }
 
 char *t_ms(uint16_t t){
@@ -40,7 +40,7 @@ char *t_ms(uint16_t t){
 }
 
 char *t_txt(uint16_t i){
-  static char *res[] =  {"sel", "rmt", "sns"};
+  static char *res[] =  {" ok", "rmt", "sns"};
   return res[i];
 }
 
@@ -48,26 +48,26 @@ unsigned long exptime[] = {1, 2, 3, 4, 6, 8, 11, 17, 22, 33, 50, 67, 100, 125, 1
 
 
 char *b_txt(uint16_t i){
-    static char* expstr[] = {"1/1000s", "1/500s", "1/350s", "1/250s", "1/180s", "1/125s", "1/90s", "1/60s", "1/45s", "1/30s", "1/20s", "1/15s", "1/10s", "1/8s", "1/6s", "1/4s", "1/3s", "1/2s", "0.7s", "1sec", "1.5sec", "2sec", "3sec", "4sec", "6sec", "8sec", "10sec", "15sec", "20sec", "30sec", "40sec", "1min", "1.5min", "2min", "3min", "4min", "6min", "8min", "10min", "15min", "20min", "30min", "40min", "60min", "80min", "120min"};
+    static char* expstr[] = {"1/1000", "1/500", "1/350", "1/250", "1/180", "1/125", "1/90", "1/60", "1/45", "1/30", "1/20", "1/15", "1/10", "1/8", "1/6", "1/4", "1/3", "1/2s", "0.7s", "1s", "1.5s", "2s", "3s", "4s", "6s", "8s", "10s", "15s", "20s", "30s", "40s", "1m", "1.5m", "2m", "3m", "4m", "6min", "8m", "10m", "15m", "20m", "30m", "40m", "60m", "80m", "120m"};
     return expstr[i];
 }
 
 char *n_txt(uint16_t i){
   static char res[4];
   if (i == 0) return " \6\7";
-  sprintf(res,"%3u",i);
+  sprintf(res, "%3u", i);
   return res;
 }
 
-void timeset(unsigned int *i){
-  char pos = 3, pos_[] = { 7, 8, 10, 11};
+void timeset(unsigned int *i, int x, int y){
+  char pos = 3, pos_[] = { 0, 1, 3, 4};
   boolean fin = false;
   int value[4];
   fill_tm(*i, value);
-  lcd.setCursor(6,0);
+  lcd.setCursor(x,y);
   while (!fin){
     lcd.cursor();
-    lcd.setCursor(pos_[pos],0);
+    lcd.setCursor(pos_[pos]+x,y);
     switch (readButtonRelease()){
       case 'R':
         pos++;
@@ -93,31 +93,27 @@ void timeset(unsigned int *i){
         break;
     }
     lcd.noBlink();
-    lcd.setCursor(7,0);
+    lcd.setCursor(x,y);
     *i = value[3] + value[2]*10 + value[1]*60 + value[0]*600;
     lcd.print(t_ms(*i));
   }
 }
 
-void numset(unsigned int *value, char ud){
+void numset(unsigned int *value, char ud, int x, int y){
    unsigned int inc = 1;
    long t0 = millis();
    while(readButtonPress() == ud){
-    if (ud == '+'){
+    if (ud == 'R'){
      *value += 1;
      *value %= 1000;
     }
-    else if (ud == '-'){
+    else if (ud == 'L'){
      *value += (1000 - 1);
      *value %= 1000;
     }
 
-    lcd.setCursor(7,1);
+    lcd.setCursor(x,y);
     lcd.print(n_txt(*value));
-    /*lcd.setCursor(9, 1);
-    lcd.print("     ");
-    lcd.setCursor(9, 1);
-    lcd.print(inc);*/
     inc = fib(1+(millis() - t0)/1000);
     delay(1000/(2*inc));
    }
@@ -150,17 +146,16 @@ void timer(void){
   uint16_t time = 5;
   uint16_t trigger = 0;
 
-  minimenu mm[] = {
+  minimenu mm[3] = {
     (minimenu){false, "time", 0, 0, _ms,  &time,    t_ms},
     (minimenu){false, "trig", 0, 1, _int, &trigger, t_txt},
-    (minimenu){false, "go",  12, 1, _ok,  0,        0},
-    NULL
+    (minimenu){false, "ok",  12, 1, _ok,  0,        0}
   };
   lcd.clear();
 
   while (true){
     mm[setting].active = true;
-    mm_print(mm);
+    mm_print(mm, 3);
     switch (readButtonRelease()){
       case 'D':
         mm[setting].active = false;
@@ -186,7 +181,7 @@ void timer(void){
         }
 
         if (setting == 0){
-          timeset(&time);
+          timeset(&time, mm[setting].x+strlen(mm[setting].caption)+2, mm[setting].y);
         }
 
         break;
@@ -208,19 +203,16 @@ void intervalometer(void){
   uint16_t time = 5;
   uint16_t number = 10;
 
-  minimenu mm[] = {
-    (minimenu){false, "time", 0, 0, _ms, &time,   t_ms},
-    (minimenu){false, "num ", 0, 1, _int, &number,n_txt},
-    (minimenu){false, "go",  12, 1, _ok, 0,       0},
-    NULL
+  minimenu mm[3] = {
+    (minimenu){false, "time", 0, 0, _ms,  &time,   t_ms},
+    (minimenu){false, "num", 0, 1,  _int, &number, n_txt},
+    (minimenu){false, "ok",  12, 1, _ok,  0,       0}
   };
   lcd.clear();
 
   while (true){
     mm[setting].active = true;
-    mm_print(mm);
-    //~ mm_print(mm+1);
-    //~ mm_print(mm+2);
+    mm_print(mm, 3);
     switch (readButtonPress()){
       case 'D':
         readButtonRelease();
@@ -238,7 +230,7 @@ void intervalometer(void){
       case 'S':
       readButtonRelease();
         if (setting == 0){
-          timeset(&time);
+          timeset(&time, mm[setting].x+strlen(mm[setting].caption)+2, mm[setting].y);
         }
         else if (setting == 2){
           timeIt(time, number);
@@ -246,7 +238,7 @@ void intervalometer(void){
         break;
       case 'R':
         if (setting == 1){
-          numset(&number,'+');
+          numset(&number, 'R', mm[setting].x+strlen(mm[setting].caption)+2, mm[setting].y);
         }
         break;
       case 'L':
@@ -255,7 +247,7 @@ void intervalometer(void){
           return;
         }
         else if (setting == 1){
-          numset(&number,'-');
+          numset(&number, 'L', mm[setting].x+strlen(mm[setting].caption)+2, mm[setting].y);
         }
         break;
     }
@@ -301,21 +293,17 @@ void hdr(void){
   uint16_t b = 10;
   uint16_t ev = 3;
 
-  minimenu mm[] = {
+  minimenu mm[4] = {
     (minimenu){false, "EV",   0, 0, _int, &ev, n_txt},
     (minimenu){false, "base", 0, 1, _int, &be, b_txt},
-    (minimenu){false, "b",   10, 0, _int, &b,  n_txt},
-    (minimenu){false, "go",  12, 1, _int, 0,   0},
-    NULL
+    (minimenu){false, "n",    9, 0, _int, &b,  n_txt},
+    (minimenu){false, "ok",  12, 1, _int, 0,   0}
   };
   lcd.clear();
 
   while (true){
     mm[setting].active = true;
-    mm_print(mm);
-    //~ mm_print(mm+1);
-    //~ mm_print(mm+2);
-    //~ mm_print(mm+3);
+    mm_print(mm, 4);
     switch (readButtonPress()){
       case 'D':
         readButtonRelease();
@@ -332,30 +320,75 @@ void hdr(void){
         break;
       case 'S':
       readButtonRelease();
-        if (setting == 0){
-          //numset(&
-        }
-        else if (setting == 2){
-          //timeIt(time, number);
-          //hdrIt(
-        }
+        if (setting == 3)
+            hdrIt(be, ev, b);
         break;
       case 'R':
-        if (setting == 1){
-          //numset(&number,'R');
-        }
+        numset(mm[setting].val, 'R', mm[setting].x+strlen(mm[setting].caption)+2, mm[setting].y);
+        //~ if (setting == 0)
         break;
       case 'L':
-        if (setting == 0){
-            readButtonRelease();
-          return;
-        }
-        else if (setting == 1){
-          //numset(&number,'L');
-        }
+        numset(mm[setting].val, 'L', mm[setting].x+strlen(mm[setting].caption)+2, mm[setting].y);
         break;
     }
   }
 }
 
 
+void bulb(void){
+  uint16_t setting = 0;
+  uint16_t time = 5;
+  uint16_t trigger = 0;
+
+  minimenu mm[3] = {
+    (minimenu){false, "time", 0, 0, _ms,  &time,    t_ms},
+    (minimenu){false, "trig", 0, 1, _int, &trigger, t_txt},
+    (minimenu){false, "ok",  12, 1, _ok,  0,        0}
+  };
+  lcd.clear();
+
+  while (true){
+    mm[setting].active = true;
+    mm_print(mm, 3);
+    switch (readButtonRelease()){
+      case 'D':
+        mm[setting].active = false;
+        setting += 1;
+        setting %= 3;
+        break;
+      case 'U':
+        mm[setting].active = false;
+        setting += 3;
+        setting -= 1;
+        setting %= 3;
+        break;
+      case 'S':
+        if (setting == 2){
+          //timeIt(time, 1);
+
+        }
+        break;
+      case 'R':
+        if (setting == 1){
+          trigger += 3;
+          trigger -= 1;
+          trigger %= 3;
+        }
+
+        if (setting == 0){
+          timeset(&time, mm[setting].x+strlen(mm[setting].caption)+2, mm[setting].y);
+        }
+
+        break;
+      case 'L':
+        if (setting == 0){
+          return;
+        }
+        else if (setting == 1){
+          trigger += 1;
+          trigger %= 3;
+        }
+        break;
+    }
+  }
+}

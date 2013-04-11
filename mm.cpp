@@ -5,20 +5,23 @@
 
 extern LiquidCrystal lcd;
 
-void mm_print(minimenu *mm){
-    while (mm){
+void mm_print(minimenu mm[], int n){
+    //int n = sizeof(mm)/(sizeof(mm[0]));
+    while (n--){
       lcd.setCursor(mm->x,mm->y);
       if (mm->active) lcd.write(RA);
       else lcd.write(EA);
       lcd.print(mm->caption);
-      lcd.print(' ');
+      //~ lcd.print(' ');
         if (mm->type != 2)
             if (mm->active) lcd.write(LA);
             else lcd.write(' ');
-        lcd.print((*mm->callback)(*mm->val));
+        if (*mm->callback != 0)
+            lcd.print((*mm->callback)(*mm->val));
         if (mm->type != 2)
             if (mm->active) lcd.write(RA);
             else lcd.write(' ');
+       mm++;
     }
 
 
