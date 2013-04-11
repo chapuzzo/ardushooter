@@ -48,7 +48,14 @@ unsigned long exptime[] = {1, 2, 3, 4, 6, 8, 11, 17, 22, 33, 50, 67, 100, 125, 1
 
 
 char *b_txt(uint16_t i){
-    static char* expstr[] = {"1/1000", "1/500", "1/350", "1/250", "1/180", "1/125", "1/90", "1/60", "1/45", "1/30", "1/20", "1/15", "1/10", "1/8", "1/6", "1/4", "1/3", "1/2s", "0.7s", "1s", "1.5s", "2s", "3s", "4s", "6s", "8s", "10s", "15s", "20s", "30s", "40s", "1m", "1.5m", "2m", "3m", "4m", "6min", "8m", "10m", "15m", "20m", "30m", "40m", "60m", "80m", "120m"};
+    static char* expstr[] = {"1/1000", "1/500", "1/350", "1/250", "1/180", "1/125",
+                              " 1/90", " 1/60", " 1/45", " 1/30", " 1/20", " 1/15",
+                              " 1/10", "  1/8", "  1/6", "  1/4", "  1/3", "  1/2",
+                              " 0.7s", "   1s", " 1.5s", "   2s", "   3s", "   4s",
+                              "   6s", "   8s", "  10s", "  15s", "  20s", "  30s",
+                              "  40s", "   1m", " 1.5m", "   2m", "   3m", "   4m",
+                              "   6m", "   8m", "  10m", "  15m", "  20m", "  30m",
+                              "  40m", "  60m", "  80m", " 120m"};
     return expstr[i];
 }
 
@@ -99,7 +106,7 @@ void timeset(unsigned int *i, int x, int y){
   }
 }
 
-void numset(unsigned int *value, char ud, int x, int y){
+void numset(unsigned int *value, char ud, int x, int y, char* (*callback)(uint16_t val)){
    unsigned int inc = 1;
    long t0 = millis();
    while(readButtonPress() == ud){
@@ -113,7 +120,7 @@ void numset(unsigned int *value, char ud, int x, int y){
     }
 
     lcd.setCursor(x,y);
-    lcd.print(n_txt(*value));
+    lcd.print((*callback)(*value));
     inc = fib(1+(millis() - t0)/1000);
     delay(1000/(2*inc));
    }
@@ -238,7 +245,7 @@ void intervalometer(void){
         break;
       case 'R':
         if (setting == 1){
-          numset(&number, 'R', mm[setting].x+strlen(mm[setting].caption)+2, mm[setting].y);
+          numset(&number, 'R', mm[setting].x+strlen(mm[setting].caption)+2, mm[setting].y,n_txt);
         }
         break;
       case 'L':
@@ -247,7 +254,7 @@ void intervalometer(void){
           return;
         }
         else if (setting == 1){
-          numset(&number, 'L', mm[setting].x+strlen(mm[setting].caption)+2, mm[setting].y);
+          numset(&number, 'L', mm[setting].x+strlen(mm[setting].caption)+2, mm[setting].y,n_txt);
         }
         break;
     }
@@ -324,11 +331,11 @@ void hdr(void){
             hdrIt(be, ev, b);
         break;
       case 'R':
-        numset(mm[setting].val, 'R', mm[setting].x+strlen(mm[setting].caption)+2, mm[setting].y);
+        numset(mm[setting].val, 'R', mm[setting].x+strlen(mm[setting].caption)+2, mm[setting].y,b_txt);
         //~ if (setting == 0)
         break;
       case 'L':
-        numset(mm[setting].val, 'L', mm[setting].x+strlen(mm[setting].caption)+2, mm[setting].y);
+        numset(mm[setting].val, 'L', mm[setting].x+strlen(mm[setting].caption)+2, mm[setting].y,b_txt);
         break;
     }
   }
