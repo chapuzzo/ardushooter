@@ -21,7 +21,7 @@ void fill_tm(int i, int v[]){
   v[3] = i;
 }
 
-#define SHUTTERPIN 4      // which pin is the shutter connected to?
+#define SHUTTERPIN A3      // which pin is the shutter connected to?
 
 
 void fire(unsigned long t){
@@ -143,7 +143,9 @@ void timeIt(uint16_t time, uint16_t number){
     lcd.print(number);
     lcd.setCursor(0,1);
     lcd.print(millis() - t_0);
+    fire(500);
   }
+  
   readButtonRelease();
   lcd.clear();
 }
@@ -331,11 +333,11 @@ void hdr(void){
             hdrIt(be, ev, b);
         break;
       case 'R':
-        numset(mm[setting].val, 'R', mm[setting].x+strlen(mm[setting].caption)+2, mm[setting].y,b_txt);
+        numset(mm[setting].val, 'R', mm[setting].x+strlen(mm[setting].caption)+2, mm[setting].y,mm[setting].callback);
         //~ if (setting == 0)
         break;
       case 'L':
-        numset(mm[setting].val, 'L', mm[setting].x+strlen(mm[setting].caption)+2, mm[setting].y,b_txt);
+        numset(mm[setting].val, 'L', mm[setting].x+strlen(mm[setting].caption)+2, mm[setting].y,mm[setting].callback);
         break;
     }
   }
@@ -371,8 +373,7 @@ void bulb(void){
         break;
       case 'S':
         if (setting == 2){
-          //timeIt(time, 1);
-
+          fire(time*1000);
         }
         break;
       case 'R':
